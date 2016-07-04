@@ -5,7 +5,7 @@
  */
 var Settings = require('settings');
 Settings.config(
-  { url: 'http://10.0.1.21:8888/pebble/index.html' },
+  { url: 'http://yo.3xw.ch' },
   function(e) {
     console.log('opening configurable');
 
@@ -14,7 +14,7 @@ Settings.config(
   },
   function(e) {
     console.log('closed configurable');
-    
+
     // Show the parsed response
     console.log(JSON.stringify(e.options));
 
@@ -22,7 +22,7 @@ Settings.config(
     if (e.failed) {
       console.log(e.response);
     }
-    
+
   }
 );
 
