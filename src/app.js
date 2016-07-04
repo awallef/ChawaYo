@@ -7,7 +7,7 @@ var Settings = require('settings');
 var TOKEN = Settings.data('token');
 var api = 'https://api.justyo.co/';
 var config = {
-  url: 'http://yo.3xw.ch/',
+  url: 'http://www.example.com'//'http://yo.3xw.ch/',
 };
 var contacts = [];
 var contactMenu = null;
