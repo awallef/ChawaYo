@@ -5,9 +5,9 @@ var Settings = require('settings');
 
 // CONFIG
 var TOKEN = Settings.data('token');
+var api = 'https://api.justyo.co/';
 var config = {
-  url: 'http://yo.3xw.ch',
-  api: 'https://api.justyo.co/',
+  url: 'http://yo.3xw.ch/',
 };
 var contacts = [];
 var contactMenu = null;
@@ -79,7 +79,9 @@ var displayContacts = function(){
 // SETUP
 Settings.config(
   config,
-  function(e) {},
+  function(e) {
+    console.log('loading...');
+  },
   function(e) {
     var options = JSON.stringify(e.options);
     console.log(options);
