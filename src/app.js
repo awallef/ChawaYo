@@ -21,24 +21,6 @@ var displayConfig = function(){
   config.show();
 };
 
-var getToken = function(){
-  Settings.config(
-    config,
-    function(e) {},
-    function(e) {
-      var options = JSON.stringify(e.options);
-      console.log(options);
-      if (e.failed) {
-        console.log(e.response);
-      }else{
-        TOKEN = options.token;
-        loadContacts();
-      }
-
-    }
-  );
-};
-
 // YO API CALLS
 var loadContacts = function(){
   ajax({ url: config.api+'contacts/?access_token='+TOKEN, type: 'json' },
@@ -84,10 +66,6 @@ var displayContacts = function(){
     sendYo(contact);
 
     var card = new UI.Card({
-      status: {
-        backgroundColor: 0xffb300,
-        separator: Feature.round('none', 'dotted'),
-      },
       backgroundColor : 0xffb300,
     });
     card.title(e.item.title);
@@ -96,6 +74,24 @@ var displayContacts = function(){
   });
   contactMenu.show();
 };
+
+
+// SETUP
+Settings.config(
+  config,
+  function(e) {},
+  function(e) {
+    var options = JSON.stringify(e.options);
+    console.log(options);
+    if (e.failed) {
+      console.log(e.response);
+    }else{
+      TOKEN = options.token;
+      loadContacts();
+    }
+
+  }
+);
 
 
 //initialize
