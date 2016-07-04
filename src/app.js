@@ -1,111 +1,106 @@
-/**
- * Welcome to Pebble.js!
- *
- * This is where you write your app.
- */
-var Settings = require('settings');
-Settings.config(
-  { url: 'http://yo.3xw.ch' },
-  function(e) {
-    console.log('opening configurable');
-
-    // Reset color to red before opening the webview
-    Settings.option('color', 'red');
-  },
-  function(e) {
-    console.log('closed configurable');
-
-    // Show the parsed response
-    console.log(JSON.stringify(e.options));
-
-    // Show the raw response if parsing failed
-    if (e.failed) {
-      console.log(e.response);
-    }
-
-  }
-);
-
-
+// NATIF
 var UI = require('ui');
-var Vector2 = require('vector2');
+var ajax = require('ajax');
+var Settings = require('settings');
 
-var main = new UI.Card({
-  title: 'Pebble.js',
-  icon: 'images/menu_icon.png',
-  subtitle: 'Hello World!',
-  body: 'Press any button.',
-  subtitleColor: 'indigo', // Named colors
-  bodyColor: '#9a0036' // Hex colors
+// CONFIG
+var TOKEN = Settings.data('token');
+var config = {
+  url: 'http://yo.3xw.ch',
+  api: 'https://api.justyo.co/',
+};
+var contacts = [];
+var contactMenu = null;
+var config = new UI.Card({
+  title: 'Settings',
+  body: 'Please go to this app settimg panel into your phone.',
 });
 
-main.show();
+// config pannel
+var displayConfig = function(){
+  config.show();
+};
 
-main.on('click', 'up', function(e) {
-  var menu = new UI.Menu({
+var getToken = function(){
+  Settings.config(
+    config,
+    function(e) {},
+    function(e) {
+      var options = JSON.stringify(e.options);
+      console.log(options);
+      if (e.failed) {
+        console.log(e.response);
+      }else{
+        TOKEN = options.token;
+        loadContacts();
+      }
+
+    }
+  );
+};
+
+// YO API CALLS
+var loadContacts = function(){
+  ajax({ url: config.api+'contacts/?access_token='+TOKEN, type: 'json' },
+    function(data, status, req) {
+      console.log(data);
+      contacts = data.contacts;
+    }
+  );
+};
+
+var sendYo = function(contact){
+  ajax({ url: config.api+'yo/'+TOKEN, type: 'json',method:'post', data:{
+    access_token: TOKEN,
+    username: contact.username
+  } },
+    function(data, status, req) {
+      console.log(data);
+    }
+  );
+};
+
+// YO API VIEWS
+var displayContacts = function(){
+
+  var items = [];
+  for( var i in contacts ){
+    items.push({
+      title: contacts[i].username
+    });
+  }
+
+  contactMenu = new UI.Menu({
     sections: [{
-      items: [{
-        title: 'Pebble.js',
-        icon: 'images/menu_icon.png',
-        subtitle: 'Can do Menus'
-      }, {
-        title: 'Second Item',
-        subtitle: 'Subtitle Text'
-      }, {
-        title: 'Third Item',
-      }, {
-        title: 'Fourth Item',
-      }]
+      items: items
     }]
   });
-  menu.on('select', function(e) {
+
+  contactMenu.on('select', function(e) {
     console.log('Selected item #' + e.itemIndex + ' of section #' + e.sectionIndex);
     console.log('The item is titled "' + e.item.title + '"');
-  });
-  menu.show();
-});
+    var contact = contacts[e.itemIndex];
 
-main.on('click', 'select', function(e) {
-  var wind = new UI.Window({
-    backgroundColor: 'black'
-  });
-  var radial = new UI.Radial({
-    size: new Vector2(140, 140),
-    angle: 0,
-    angle2: 300,
-    radius: 20,
-    backgroundColor: 'cyan',
-    borderColor: 'celeste',
-    borderWidth: 1,
-  });
-  var textfield = new UI.Text({
-    size: new Vector2(140, 60),
-    font: 'gothic-24-bold',
-    text: 'Dynamic\nWindow',
-    textAlign: 'center'
-  });
-  var windSize = wind.size();
-  // Center the radial in the window
-  var radialPos = radial.position()
-      .addSelf(windSize)
-      .subSelf(radial.size())
-      .multiplyScalar(0.5);
-  radial.position(radialPos);
-  // Center the textfield in the window
-  var textfieldPos = textfield.position()
-      .addSelf(windSize)
-      .subSelf(textfield.size())
-      .multiplyScalar(0.5);
-  textfield.position(textfieldPos);
-  wind.add(radial);
-  wind.add(textfield);
-  wind.show();
-});
+    sendYo(contact);
 
-main.on('click', 'down', function(e) {
-  var card = new UI.Card();
-  card.title('A Card');
-  card.subtitle('Is a Window');
-  card.body('The simplest window type in Pebble.js.');
-  card.show();
-});
+    var card = new UI.Card({
+      status: {
+        backgroundColor: 0xffb300,
+        separator: Feature.round('none', 'dotted'),
+      },
+      backgroundColor : 0xffb300,
+    });
+    card.title(e.item.title);
+    card.body('Yo sent!!!');
+    card.show();
+  });
+  contactMenu.show();
+};
+
+
+//initialize
+if( !TOKEN ){
+  displayConfig();
+}else{
+  displayContacts();
+}
