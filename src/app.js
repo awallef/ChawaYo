@@ -4,11 +4,10 @@ var ajax = require('ajax');
 var Settings = require('settings');
 
 // CONFIG
-var TOKEN = Settings.data('token');
+var access_token = Settings.data('access_token');
+var api_token = Settings.data('api_token');
 var api = 'https://api.justyo.co/';
-var config = {
-  url: 'http://www.example.com'//'http://yo.3xw.ch/',
-};
+
 var contacts = [];
 var contactMenu = null;
 var config = new UI.Card({
@@ -22,29 +21,26 @@ var displayConfig = function(){
 };
 
 // YO API CALLS
-var loadContacts = function(){
-  ajax({ url: config.api+'contacts/?access_token='+TOKEN, type: 'json' },
-    function(data, status, req) {
-      console.log(data);
-      contacts = data.contacts;
-    }
-  );
-};
-
 var sendYo = function(contact){
-  ajax({ url: config.api+'yo/'+TOKEN, type: 'json',method:'post', data:{
-    access_token: TOKEN,
+  console.log('sendYo');
+  console.log('api_token: '+api_token);
+  console.log('username: '+contact.username);
+  ajax({ url: api+'yo/', type: 'json',method:'post', data:{
+    api_token: api_token,
     username: contact.username
   } },
     function(data, status, req) {
       console.log(data);
+    },
+    function(data, status, req) {
+      console.log('error on loading');
     }
   );
 };
 
 // YO API VIEWS
 var displayContacts = function(){
-
+  console.log('displayContacts');
   var items = [];
   for( var i in contacts ){
     items.push({
@@ -59,6 +55,9 @@ var displayContacts = function(){
   });
 
   contactMenu.on('select', function(e) {
+      
+    console.log('contactMenu select');
+    
     console.log('Selected item #' + e.itemIndex + ' of section #' + e.sectionIndex);
     console.log('The item is titled "' + e.item.title + '"');
     var contact = contacts[e.itemIndex];
@@ -75,21 +74,40 @@ var displayContacts = function(){
   contactMenu.show();
 };
 
+var loadContacts = function(){
+  console.log('loadContacts: ' + api+'contacts/?access_token='+access_token );
+  ajax({ url: api+'contacts/?access_token='+access_token, type: 'json' },
+    function(data, status, req) {
+      console.log(data);
+      contacts = data.contacts;
+      displayContacts();
+    },
+    function(data, status, req) {
+      console.log('error on loading');
+    }
+  );
+};
+
 
 // SETUP
 Settings.config(
-  config,
+  {url: 'http://yo.3xw.ch/'},
   function(e) {
     console.log('loading...');
   },
   function(e) {
-    var options = JSON.stringify(e.options);
+    var options = e.options;
     console.log(options);
+    console.log(options.access_token);
+    console.log(options.api_token);
+    Settings.data('access_token', options.access_token);
+    Settings.data('api_token', options.api_token);
+    access_token = Settings.data('access_token');
+    api_token = Settings.data('api_token');
+    loadContacts();
+    
     if (e.failed) {
       console.log(e.response);
-    }else{
-      TOKEN = options.token;
-      loadContacts();
     }
 
   }
@@ -97,8 +115,8 @@ Settings.config(
 
 
 //initialize
-if( !TOKEN ){
+if( !access_token || !api_token ){
   displayConfig();
 }else{
-  displayContacts();
+ loadContacts();
 }
